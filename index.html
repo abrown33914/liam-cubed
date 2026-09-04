@@ -763,8 +763,8 @@ const EVENTS = {
     ]
   },
   wrestling: {
-    title:'MINISINK',
-    flavor:"Minisink Valley's known for wrestling. He went with tennis, swimming, and baseball instead.",
+    title:'MINISINK VALLEY',
+    flavor:"Skipped wrestling. Dominated tennis and swim. Umpired baseball on the side, because apparently one sport wasn't enough.",
     choices:[
       {label:'MAKE THE CALL', desc:"Old umpire instincts. Three-of-a-kind or better always deals +4 extra damage.", apply:s=>{s.perks.minisinkBonus+=4;}, toast:'Call stands'},
       {label:'STAY QUIET', desc:'Heal 1 life instead.', apply:s=>{if(s.lives<3)s.lives++;}, toast:'Healed 1 life'}
@@ -820,14 +820,14 @@ const ALL_PERKS = [
 ];
 
 const TICKER_LINES = [
-  "Knows every World Series winner. All of them. Don't test it.",
+  "Ask him any World Series winner. He's never once been wrong. Never asked to be right, either.",
   "Retired from competitive Call of Duty. No comeback planned.",
-  "From Buffalo. Still cold about it, in the good way.",
-  "Cooks. Rarely burns anything. Suspicious, honestly.",
-  "Somewhere there's a plaque. It says President of the Year. It's dusty.",
-  "Three blades, one purpose. Ask him what that means if you've got a minute.",
-  "Was a camp counselor. Kept forty kids alive, several summers running.",
-  "Went to Jesus camp as a kid. Composure unmatched since.",
+  "Buffalo college years. Character-building, mostly via wind chill.",
+  "Cooks. Never burns anything. No notes. Deeply suspicious..",
+  "President of the Year, officially. Doesn’t bring it up. Doesn’t have to.",
+  "Loyal to Mosshead since day one. Never wavered. Never will.",
+  "Camp counselor track record: flawless. Thirty kids, minimal chaos. Impressive, actually.",
+  "Jesus camp survivor. Emerged with the calm of a man twice his age.",
   "New number today. Stats otherwise unchanged."
 ];
 
