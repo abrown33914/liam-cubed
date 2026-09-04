@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>LIAM³</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Pixelify+Sans:wght@400..700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --soil:#181109;
+    --panel:#22301c;
+    --panel-light:#334524;
+    --navy:#101c37;
+    --navy-light:#1c3157;
+    --cream:#ece1c4;
+    --gold:#e8b64a;
+    --gold-dim:#a17f2f;
+    --red:#c8432f;
+    --frost:#8fd8e8;
+    --ink:#ece1c4;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0;padding:0;background:var(--soil);color:var(--ink);font-family:'Pixelify Sans',sans-serif;}
+  body{
+    min-height:100vh;
+    background:var(--soil);
+    display:flex;
+    justify-content:center;
+    image-rendering:pixelated;
+  }
+  ::selection{background:var(--gold); color:var(--soil);}
+
+  #app{width:100%; max-width:1040px; min-height:100vh; display:flex; flex-direction:column; padding:18px;}
+
+  .pixel-frame{
+    border:3px solid var(--navy);
+    box-shadow: 5px 5px 0 0 rgba(0,0,0,0.5), inset 0 0 0 2px var(--cream);
+    clip-path: polygon(0 8px,8px 8px,8px 0,calc(100% - 8px) 0,calc(100% - 8px) 8px,100% 8px,100% calc(100% - 8px),calc(100% - 8px) calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,8px calc(100% - 8px),0 calc(100% - 8px));
+    background:var(--panel);
+  }
+
+  h1,h2,h3{font-family:'Press Start 2P', monospace; font-weight:400; margin:0; line-height:1.3;}
+  .eyebrow{
+    font-family:'Silkscreen', monospace;
+    font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--gold-dim); font-weight:700;
+  }
+  .pinstripe{
+    background-image: none;
+  }
+
+  .screen{display:none; flex-direction:column; flex:1; min-height:calc(100vh - 36px); animation:pop 0.25s steps(4) both;}
+  .screen.active{display:flex;}
+  @keyframes pop{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+  .narrow{width:100%; max-width:520px; margin:0 auto;}
+
+  .btn{
+    font-family:'Press Start 2P', monospace; font-size:14px; padding:14px 18px;
+    border:3px solid var(--navy); background:var(--gold); color:var(--soil);
+    box-shadow:4px 4px 0 0 var(--navy); cursor:pointer;
+    clip-path: polygon(0 6px,6px 6px,6px 0,calc(100% - 6px) 0,calc(100% - 6px) 6px,100% 6px,100% calc(100% - 6px),calc(100% - 6px) calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,6px calc(100% - 6px),0 calc(100% - 6px));
+    transition:transform 0.08s steps(2), box-shadow 0.08s steps(2);
+    text-transform:uppercase;
+  }
+  .btn:active{transform:translate(4px,4px); box-shadow:0 0 0 0 var(--navy);}
+  .btn:disabled{opacity:0.35; cursor:not-allowed;}
+  .btn-ghost{background:var(--panel-light); color:var(--cream);}
+  .btn-frost{background:var(--frost); color:var(--navy);}
+  .btn-row{display:flex; gap:10px;}
+  .btn-row .btn{flex:1;}
+
+  .toast{
+    position:fixed; top:14px; left:50%; transform:translateX(-50%);
+    background:var(--navy); border:3px solid var(--gold); color:var(--cream);
+    padding:10px 16px; font-family:'Silkscreen',monospace; font-size:13px; font-weight:700;
+    z-index:60; opacity:0; pointer-events:none; transition:opacity 0.25s, top 0.25s; text-align:center; max-width:88%;
+    clip-path: polygon(0 6px,6px 6px,6px 0,calc(100% - 6px) 0,calc(100% - 6px) 6px,100% 6px,100% calc(100% - 6px),calc(100% - 6px) calc(100% - 6px),calc(100% - 6px) 100%,6px 100%,6px calc(100% - 6px),0 calc(100% - 6px));
+  }
+  .toast.show{opacity:1; top:24px;}
+
+  /* ---------- TITLE ---------- */
+  #screen-title{align-items:center; justify-content:center; gap:16px; text-align:center;}
+  .cartridge{width:100%; max-width:420px; padding:30px 22px 24px; position:relative;}
+  .cartridge::before, .cartridge::after{
+    content:""; position:absolute; left:-4px; right:-4px; height:6px;
+    background-image: repeating-linear-gradient(90deg, var(--gold) 0 6px, transparent 6px 20px);
+  }
+  .cartridge::before{ top:-12px; animation: marqueeTwinkle 1s steps(2) infinite; }
+  .cartridge::after{ bottom:-12px; animation: marqueeTwinkle 1s steps(2) infinite reverse; }
+  @keyframes marqueeTwinkle{0%,100%{opacity:1;} 50%{opacity:0.3;}}
+  .cartridge .eyebrow{display:block; margin-bottom:10px;}
+  .cartridge h1{font-size:44px; color:var(--cream); text-shadow:4px 4px 0 var(--soil); animation:titleglow 3.2s ease-in-out infinite;}
+  .cartridge h1 sup{font-size:0.5em; color:var(--gold); top:-0.6em;}
+  .title-hero-row{display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; margin-top:8px;}
+  .title-card-fan{display:flex; align-items:center; justify-content:center; gap:10px; margin-top:12px;}
+  @keyframes titleglow{
+    0%,100%{text-shadow:4px 4px 0 var(--soil), 0 0 10px rgba(232,182,74,0.12);}
+    50%{text-shadow:4px 4px 0 var(--soil), 0 0 18px rgba(232,182,74,0.4);}
+  }
+  .ticker-wrap{
+    margin-top:16px; padding:10px 12px; background:var(--navy); border:2px solid var(--gold-dim);
+    font-family:'Silkscreen',monospace; font-size:13px; color:var(--frost); min-height:38px;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+  }
+  .start-stack{margin-top:22px; display:flex; flex-direction:column; gap:10px; width:100%; max-width:280px;}
+  .link-btn{
+    background:none; border:none; color:var(--gold-dim); font-family:'Silkscreen',monospace;
+    font-size:12px; text-decoration:underline; letter-spacing:0.5px; cursor:pointer; margin-top:4px;
+  }
+
+  .modal-backdrop{position:fixed; inset:0; background:rgba(8,6,3,0.85); display:none; align-items:center; justify-content:center; z-index:50; padding:20px;}
+  .modal-backdrop.active{display:flex;}
+  .modal{background:var(--panel); border:3px solid var(--gold); padding:22px; max-width:420px; width:100%; max-height:82vh; overflow-y:auto;}
+  .modal h3{color:var(--gold); font-size:18px; margin-bottom:12px;}
+  .modal p{font-size:14px; line-height:1.6; color:var(--cream); margin:0 0 12px;}
+  .modal p b{color:var(--gold);}
+  .suit-row{display:flex; align-items:center; gap:10px; margin:10px 0; font-family:'Silkscreen',monospace; font-size:13px;}
+  .suit-row .sprite-slot{flex-shrink:0;}
+
+  /* ---------- WORLD INTRO ---------- */
+  #screen-worldintro{align-items:center; justify-content:center; text-align:center; gap:14px;}
+  #screen-worldintro .sprite-slot{margin-bottom:4px;}
+  #screen-worldintro h2{font-size:30px; color:var(--gold);}
+  #screen-worldintro p{color:var(--cream); max-width:320px; font-size:15px; line-height:1.6; font-family:'Silkscreen',monospace;}
+
+  /* ---------- GAME ---------- */
+  #screen-game{gap:12px; padding-top:8px;}
+  .topbar{display:flex; justify-content:space-between; align-items:center; padding:0 2px;}
+  .lives{display:flex; gap:5px;}
+  .life-icon.dead{opacity:0.15;}
+  .worldtag{font-family:'Silkscreen',monospace; font-size:11px; letter-spacing:2px; color:var(--gold-dim); text-transform:uppercase;}
+
+  .game-grid{display:flex; flex-direction:column; gap:12px;}
+
+  .enemy-card{padding:18px 16px; text-align:center; position:relative;}
+  .enemy-card.boss{border-color:var(--red); box-shadow:5px 5px 0 0 var(--red), inset 0 0 0 2px var(--cream);}
+  .sprite-slot{display:flex; align-items:center; justify-content:center; min-height:60px;}
+
+  .duel-row{display:flex; align-items:flex-start; justify-content:center; gap:10px; margin-bottom:6px;}
+  .fighter{display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; min-width:0;}
+  .fighter-name{font-family:'Silkscreen',monospace; font-size:11px; letter-spacing:1px; color:var(--frost); text-transform:uppercase; font-weight:700;}
+  .vs-tag{font-family:'Press Start 2P',monospace; font-size:11px; color:var(--gold-dim); flex-shrink:0; margin-top:30px;}
+  .hp-track{width:100%; max-width:120px; height:10px; background:var(--soil); border:1px solid var(--navy); margin-top:2px;}
+  .hp-fill{height:100%; background:var(--red); width:100%; transition:width 0.35s ease;}
+  .hp-label{font-family:'Silkscreen',monospace; font-size:10px; color:var(--cream); margin-top:3px; letter-spacing:0.5px;}
+
+  .enemy-name{font-size:14px; letter-spacing:1px; color:var(--cream);}
+  .boss-tag{font-family:'Silkscreen',monospace; font-size:11px; letter-spacing:2px; color:var(--red); text-transform:uppercase; margin-top:4px; font-weight:700;}
+  .flavor-line{font-family:'Silkscreen',monospace; font-size:12px; color:var(--gold-dim); margin-top:6px; min-height:16px;}
+
+  .progress-wrap{margin-top:14px;}
+  .progress-track{height:16px; background:var(--soil); border:2px solid var(--navy); position:relative;}
+  .progress-fill{height:100%; background:var(--gold); width:0%; transition:width 0.35s steps(12);}
+  .progress-fill.shielded{background:var(--frost);}
+  .progress-label{font-family:'Silkscreen',monospace; font-size:12px; color:var(--cream); margin-top:6px; display:flex; justify-content:space-between; font-weight:700;}
+
+  .statrow{display:flex; gap:8px;}
+  .statbox{flex:1; background:var(--navy); border:2px solid var(--gold-dim); padding:8px 6px; text-align:center;}
+  .statbox .n{font-family:'Press Start 2P',monospace; font-size:18px; color:var(--gold);}
+  .statbox .l{font-family:'Silkscreen',monospace; font-size:9px; letter-spacing:1px; color:var(--cream); text-transform:uppercase; margin-top:4px;}
+
+  .hand-panel{padding:14px; flex:1; display:flex; flex-direction:column; gap:10px;}
+  .hand-label{font-family:'Silkscreen',monospace; font-size:11px; letter-spacing:1.5px; color:var(--gold-dim); text-transform:uppercase; display:flex; justify-content:space-between;}
+  .hand-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(58px,1fr)); gap:8px;}
+
+  .card{
+    aspect-ratio:3/4; background:var(--cream); color:var(--soil); position:relative; cursor:pointer;
+    border:2px solid var(--soil); display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+    padding:6px 2px; transition:transform 0.15s ease, box-shadow 0.15s ease;
+    clip-path: polygon(0 5px,5px 5px,5px 0,calc(100% - 5px) 0,calc(100% - 5px) 5px,100% 5px,100% calc(100% - 5px),calc(100% - 5px) calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,5px calc(100% - 5px),0 calc(100% - 5px));
+  }
+  .card.selected{transform:translateY(-12px); box-shadow:0 10px 0 0 var(--soil), 0 10px 0 3px var(--gold);}
+  .card .corner{font-family:'Silkscreen',monospace; font-size:10px; font-weight:700; align-self:flex-start; color:var(--soil);}
+  .card .corner:not(.br){font-size:16px;}
+  .card .corner.br{align-self:flex-end;}
+
+  .pip{width:15px; height:15px; flex-shrink:0; filter:drop-shadow(1px 1px 0 var(--soil)) drop-shadow(-1px -1px 0 var(--soil));}
+  .pip-heavy{background:#5a9150; clip-path:polygon(50% 0%,100% 20%,100% 55%,50% 100%,0% 55%,0% 20%);}
+  .pip-swift{background:#e8b64a; clip-path:polygon(55% 0%,8% 55%,45% 55%,35% 100%,92% 40%,50% 40%);}
+  .pip-focus{background:var(--frost); clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);}
+  .pip-crew{background:#e08a4a; transform:rotate(45deg); border-radius:2px;}
+
+  .actions{display:flex; gap:10px;}
+  .actions .btn{flex:1; font-size:12px;}
+
+  .perks-strip{padding:10px 12px;}
+  .perks-strip .hand-label{margin-bottom:8px;}
+  .perk-chip-row{display:flex; flex-wrap:wrap; gap:6px;}
+  .perk-chip{font-family:'Silkscreen',monospace; font-size:10px; font-weight:700; background:var(--navy); color:var(--gold); border:2px solid var(--gold-dim); padding:4px 8px;}
+  .perk-chip.empty{color:var(--gold-dim); font-style:italic; border-style:dashed;}
+
+  /* ---------- PERK / EVENT / FORK CHOICE ---------- */
+  #screen-perk, #screen-event, #screen-fork{align-items:center; justify-content:center; text-align:center; gap:14px;}
+  #screen-perk h2, #screen-event h2, #screen-fork h2{font-size:20px; color:var(--gold);}
+  .event-flavor{font-family:'Silkscreen',monospace; font-size:14px; color:var(--cream); max-width:380px; line-height:1.6;}
+  .perk-options{display:flex; flex-direction:column; gap:12px; width:100%; max-width:400px; margin-top:6px;}
+  .perk-card{text-align:left; padding:14px 16px; cursor:pointer; transition:transform 0.1s steps(3);}
+  .perk-card:active{transform:translate(3px,3px);}
+  .perk-card .pname{font-family:'Press Start 2P',monospace; font-size:13px; color:var(--gold); letter-spacing:0.5px; line-height:1.5;}
+  .perk-card .pdesc{font-family:'Silkscreen',monospace; font-size:13px; color:var(--cream); margin-top:8px; line-height:1.5;}
+
+  /* ---------- GAME OVER / VICTORY ---------- */
+  #screen-gameover, #screen-victory{align-items:center; justify-content:center; text-align:center; gap:14px;}
+  #screen-gameover .big{font-size:26px; color:var(--red);}
+  #screen-victory .big{font-size:22px; color:var(--gold); text-shadow:3px 3px 0 var(--soil);}
+  #screen-victory p, #screen-gameover p{color:var(--cream); max-width:340px; line-height:1.7; font-family:'Silkscreen',monospace; font-size:14px;}
+  #victory-stats{font-family:'Silkscreen',monospace; font-size:12px; color:var(--cream); line-height:1.9; text-align:left;}
+  #victory-stats b{color:var(--gold);}
+  .confetti-piece{position:fixed; top:-12px; width:7px; height:12px; z-index:70; pointer-events:none; animation:confettiFall linear forwards;}
+  @keyframes confettiFall{
+    0%{transform:translateY(0) rotate(0deg); opacity:1;}
+    100%{transform:translateY(100vh) rotate(360deg); opacity:0.2;}
+  }
+
+  /* ---------- MOBILE ---------- */
+  @media (max-width:640px){
+    #app{padding:10px;}
+    #screen-game{gap:7px; padding-top:2px;}
+    .game-grid{gap:7px;}
+    .enemy-card{padding:8px 10px;}
+    .duel-row{margin-bottom:2px;}
+    .flavor-line{font-size:10px; min-height:0; margin-top:3px;}
+    .fighter-name{font-size:10px;}
+    .progress-wrap{margin-top:6px;}
+    .progress-track{height:12px;}
+    .progress-label{margin-top:3px; font-size:11px;}
+    .statrow{gap:5px;}
+    .statbox{padding:4px 3px;}
+    .statbox .n{font-size:14px;}
+    .statbox .l{font-size:8px; margin-top:2px;}
+    .perks-strip{padding:5px 8px;}
+    .perks-strip .hand-label{margin-bottom:4px;}
+    .perk-chip{font-size:9px; padding:3px 6px;}
+    .hand-panel{padding:5px;}
+    .hand-label{margin-bottom:2px;}
+    .hand-grid{grid-template-columns:repeat(4, 1fr); gap:4px;}
+    .card{max-width:88px; margin:0 auto; padding:4px 3px;}
+    .card .corner:not(.br){font-size:15px;}
+    .card .corner.br{font-size:8px;}
+    .pip{width:14px; height:14px;}
+    .actions{gap:6px;}
+    .actions .btn{padding:8px 8px; font-size:11px;}
+  }
+
+  @media (min-width:860px){
+    #app{padding:32px;}
+    .narrow{max-width:600px;}
+    .cartridge{max-width:480px; padding:40px 34px 30px;}
+    .cartridge h1{font-size:58px;}
+    .game-grid{
+      display:grid; grid-template-columns:300px 1fr; align-items:start; gap:18px; max-width:900px; margin:0 auto; width:100%;
+    }
+    .game-col-left{display:flex; flex-direction:column; gap:12px; position:sticky; top:20px;}
+    .game-col-right{display:flex; flex-direction:column; gap:12px;}
+    .hand-panel{min-height:340px;}
+    .topbar{max-width:900px; margin:0 auto; width:100%;}
+    #screen-perk .perk-options, #screen-event .perk-options, #screen-fork .perk-options{max-width:560px; flex-direction:row;}
+    .perk-card{flex:1;}
+  }
+
+  .sound-toggle{
+    font-family:'Silkscreen',monospace; font-size:10px; letter-spacing:1px; font-weight:700;
+    background:var(--navy); color:var(--frost); border:2px solid var(--gold-dim);
+    padding:6px 9px; cursor:pointer; text-transform:uppercase;
+  }
+  .sound-toggle.off{color:var(--gold-dim); border-color:rgba(232,182,74,0.25);}
+
+  @keyframes shake{0%,100%{transform:translate(0,0);} 20%{transform:translate(-4px,2px);} 40%{transform:translate(4px,-2px);} 60%{transform:translate(-3px,-2px);} 80%{transform:translate(3px,2px);}}
+  .shake{animation:shake 0.32s steps(6);}
+
+  @keyframes bob{0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);}}
+  .idle-bob{animation:bob 2.2s ease-in-out infinite;}
+
+  @keyframes hitflash{0%{filter:brightness(1);} 30%{filter:brightness(2.6) saturate(0);} 100%{filter:brightness(1);}}
+  .hit-flash{animation:hitflash 0.3s steps(4);}
+
+  .dmg-float{
+    position:absolute; left:50%; top:30%; transform:translateX(-50%);
+    font-family:'Press Start 2P',monospace; font-size:16px; color:var(--gold);
+    text-shadow:2px 2px 0 var(--soil); pointer-events:none; z-index:10;
+    animation:floatUp 0.9s ease-out forwards;
+  }
+  @keyframes floatUp{
+    0%{opacity:0; transform:translate(-50%,0) scale(0.7);}
+    15%{opacity:1; transform:translate(-50%,-6px) scale(1.1);}
+    100%{opacity:0; transform:translate(-50%,-46px) scale(1);}
+  }
+
+  .particle{
+    position:absolute; width:5px; height:5px; background:var(--gold); pointer-events:none; z-index:9;
+    left:50%; top:35%; animation:burst 0.55s ease-out forwards;
+  }
+  @keyframes burst{
+    0%{opacity:1; transform:translate(-50%,-50%) translate(0,0);}
+    100%{opacity:0; transform:translate(-50%,-50%) translate(var(--px,0), var(--py,0));}
+  }
+
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TITLE -->
+  <div class="screen active" id="screen-title">
+    <div class="pixel-frame cartridge pinstripe">
+      <span class="eyebrow" style="letter-spacing:1.5px;">3 Lives · 3 Worlds · 3 Bosses</span>
+      <div class="title-hero-row">
+        <h1 style="margin:0;">LIAM<sup>3</sup></h1>
+        <div class="sprite-slot" id="title-liam-sprite"></div>
+      </div>
+      <div class="title-card-fan">
+        <div class="pip pip-heavy" style="transform:rotate(-12deg);"></div>
+        <div class="pip pip-swift" style="transform:rotate(-4deg);"></div>
+        <div class="pip pip-focus" style="transform:rotate(4deg);"></div>
+        <div class="pip pip-crew" style="transform:rotate(12deg);"></div>
+      </div>
+      <div class="ticker-wrap"><span id="ticker-text">Loading roster...</span></div>
+    </div>
+    <p style="font-family:'Silkscreen',monospace; font-size:14px; color:var(--cream); max-width:320px; line-height:1.7; margin-top:2px;">
+      Three worlds. Every stop is a choice. Ice in your veins, or you're not making the boss.
+    </p>
+    <div class="start-stack">
+      <button class="btn" onclick="startGame()">Start Run</button>
+      <button class="link-btn" onclick="toggleModal(true)">How to play</button>
+    </div>
+    <button class="sound-toggle" id="sound-toggle-title" onclick="toggleSound()">Sound: On</button>
+  </div>
+
+  <!-- INSTRUCTIONS MODAL -->
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal">
+      <h3>THE RULES</h3>
+      <p>Each fight, you're dealt a hand. Select cards and <b>play</b> them. The better the poker hand — Pair, Straight, Flush, Full House, all the way to Straight Flush — the bigger your multiplier. Clear the target across your plays before you run out.</p>
+      <p>Bad hand? <b>Discard</b> to redraw — limited uses per fight.</p>
+      <p><b>A flush</b> (all played cards the same stance) triggers a bonus on top:</p>
+      <div class="suit-row"><span class="sprite-slot" id="modal-mine"></span> <b>HEAVY</b> — flat bonus damage</div>
+      <div class="suit-row"><span class="sprite-slot" id="modal-pal"></span> <b>CREW</b> — heals a life</div>
+      <div class="suit-row"><span class="sprite-slot" id="modal-pop"></span> <b>SWIFT</b> — burst bonus damage</div>
+      <div class="suit-row"><span class="sprite-slot" id="modal-ice"></span> <b>FOCUS</b> — shields your next loss</div>
+      <p>Miss the target and you take a hit. Lose all 3 lives and it's back to the start of the world. Along the way you'll hit forks — a tougher Elite fight for a guaranteed buff, or a Rest to heal — plus one personal detour per world with its own choice. Beat all 3 bosses to win the run.</p>
+      <button class="btn btn-ghost" style="width:100%;" onclick="toggleModal(false)">Got it</button>
+    </div>
+  </div>
+
+  <!-- WORLD INTRO -->
+  <div class="screen" id="screen-worldintro">
+    <div class="sprite-slot" id="wi-sprite"></div>
+    <div class="eyebrow" id="wi-eyebrow">WORLD 1</div>
+    <h2 id="wi-title">MINECRAFT</h2>
+    <p id="wi-desc">Two fights, then a dragon.</p>
+    <button class="btn" onclick="advanceMap()">Enter</button>
+  </div>
+
+  <!-- GAME -->
+  <div class="screen" id="screen-game">
+    <div class="topbar">
+      <div class="worldtag" id="hud-world">WORLD 1 · MINECRAFT</div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="sound-toggle" onclick="toggleModal(true)">Rules</button>
+        <button class="sound-toggle" onclick="mainMenu()">Menu</button>
+        <button class="sound-toggle" id="sound-toggle-game" onclick="toggleSound()">Sound: On</button>
+      </div>
+    </div>
+
+    <div class="game-grid">
+      <div class="game-col-left">
+        <div class="pixel-frame enemy-card" id="enemy-card">
+          <div class="duel-row">
+            <div class="fighter">
+              <div class="sprite-slot" id="liam-sprite"></div>
+              <div class="fighter-name">Liam</div>
+              <div class="hp-track"><div class="hp-fill" id="liam-hp-fill"></div></div>
+              <div class="hp-label" id="liam-hp-label">HP 3/3</div>
+            </div>
+            <div class="vs-tag">VS</div>
+            <div class="fighter">
+              <div class="sprite-slot" id="enemy-sprite"></div>
+              <div class="enemy-name" id="enemy-name">???</div>
+            </div>
+          </div>
+          <div class="boss-tag" id="enemy-boss-tag" style="display:none;">BOSS</div>
+          <div class="flavor-line" id="enemy-flavor"></div>
+          <div class="progress-wrap">
+            <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+            <div class="progress-label"><span id="dmg-current">0</span><span id="dmg-target">/ 40 DMG</span></div>
+          </div>
+        </div>
+
+        <div class="statrow">
+          <div class="pixel-frame statbox"><div class="n" id="stat-plays">2</div><div class="l">Plays</div></div>
+          <div class="pixel-frame statbox"><div class="n" id="stat-discards">2</div><div class="l">Discards</div></div>
+          <div class="pixel-frame statbox"><div class="n" id="stat-selected">0</div><div class="l">Selected</div></div>
+        </div>
+
+        <div class="pixel-frame perks-strip">
+          <div class="hand-label"><span>Buffs Earned</span></div>
+          <div class="perk-chip-row" id="perks-strip"></div>
+        </div>
+      </div>
+
+      <div class="game-col-right">
+        <div class="pixel-frame hand-panel">
+          <div class="hand-label"><span id="hand-tier-label">Your Hand</span><span id="hand-hint">tap to select</span></div>
+          <div class="hand-grid" id="hand-grid"></div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-ghost" id="btn-discard" onclick="discardSelected()">Discard</button>
+          <button class="btn" id="btn-play" onclick="playHand()">Play Hand</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERK CHOICE (from Elite wins) -->
+  <div class="screen" id="screen-perk">
+    <div class="eyebrow">Elite Defeated</div>
+    <h2>Choose Your Edge</h2>
+    <div class="perk-options" id="perk-options"></div>
+  </div>
+
+  <!-- EVENT (personalized vignette) -->
+  <div class="screen" id="screen-event">
+    <div class="eyebrow" id="event-eyebrow">Detour</div>
+    <h2 id="event-title">EVENT</h2>
+    <p class="event-flavor" id="event-flavor"></p>
+    <div class="perk-options" id="event-options"></div>
+  </div>
+
+  <!-- FORK (elite vs rest) -->
+  <div class="screen" id="screen-fork">
+    <div class="eyebrow">Fork in the Road</div>
+    <h2>Push or Rest?</h2>
+    <div class="perk-options" id="fork-options"></div>
+  </div>
+
+  <!-- GAME OVER -->
+  <div class="screen narrow" id="screen-gameover">
+    <div class="sprite-slot" id="gameover-sprite" style="justify-content:center; margin-top:auto;"></div>
+    <div class="big">DEFEATED</div>
+    <p id="gameover-text">Even the best runs end sometimes.</p>
+    <div class="btn-row" style="width:100%; max-width:320px; margin-top:auto; margin-bottom:auto;">
+      <button class="btn" onclick="startGame()">Respawn</button>
+      <button class="btn btn-ghost" onclick="mainMenu()">Menu</button>
+    </div>
+  </div>
+
+  <!-- VICTORY -->
+  <div class="screen narrow" id="screen-victory">
+    <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-top:auto;">
+      <div class="sprite-slot" id="victory-sprite"></div>
+      <div class="sprite-slot" id="cake-sprite"></div>
+    </div>
+    <div class="big">GG, LIAM</div>
+    <p id="victory-text">Every world went down. Ice in your veins the whole way.<br><br>Another trip around the sun. Happy 24th!</p>
+    <div class="pixel-frame" style="padding:12px 16px; max-width:320px; width:100%;" id="victory-stats"></div>
+    <div class="btn-row" style="width:100%; max-width:320px; margin-bottom:auto;">
+      <button class="btn btn-frost" onclick="startGame()">Run It Back</button>
+      <button class="btn btn-ghost" onclick="mainMenu()">Menu</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* ======================= PIXEL SPRITE ENGINE ======================= */
+function makeSprite(grid, colorMap, scale){
+  const cols = grid[0].length, rows = grid.length;
+  const shadows = [];
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      const ch = grid[r][c];
+      if(ch==='.') continue;
+      const color = colorMap[ch] || colorMap['X'];
+      shadows.push(c+'px '+r+'px 0 0 '+color);
+    }
+  }
+  const dot = document.createElement('div');
+  dot.style.position='absolute';
+  dot.style.left='0'; dot.style.top='0';
+  dot.style.width='1px'; dot.style.height='1px';
+  dot.style.boxShadow = shadows.join(',');
+
+  const inner = document.createElement('div');
+  inner.style.position='relative';
+  inner.style.width=cols+'px'; inner.style.height=rows+'px';
+  inner.style.transform='scale('+scale+')';
+  inner.style.transformOrigin='top left';
+  inner.appendChild(dot);
+
+  const outer = document.createElement('div');
+  outer.style.width=(cols*scale)+'px';
+  outer.style.height=(rows*scale)+'px';
+  outer.style.position='relative';
+  outer.appendChild(inner);
+  return outer;
+}
+
+const SPRITES = {
+  heart:[".XX.XX.","XXXXXXX","XXXXXXX",".XXXXX.","..XXX..","...X..."],
+  trophy:[".XXXXXXX.","XXXXXXXXX",".XXXXXXX.","..XXXXX..","...XXX...","...XXX...","..XXXXX..",".XXXXXXX.","....X....","...XXX...","..XXXXX.."],
+  skull:["..XXXXX..",".XXXXXXX.","XXXXXXXXX","XXOXXXOXX","XXXXXXXXX","XXOXOXOXX",".XX.X.XX.","..XXXXX..","...X.X..."],
+  pickaxe:["....HH....","...HHHH...","..HH..HH..",".HH....HH.","HH......HH","....DD....","....DD....","....DD....","....DD....","....DD...."],
+  paw:[".X.....X.","XX.....XX",".........","..X...X..",".XXXXXXX.","XXXXXXXXX","XXXXXXXXX",".XXXXXXX."],
+  balloon:["..XXX..",".XXXXX.","XXXXXXX","XXXXXXX","XXXXXXX",".XXXXX.","..XXX..","...S...","...S...","..SSS.."],
+  baseball:["..XXXXX..",".XXXXXXX.","XXXXXXXXX","XXXOXOXXX","XXXXXXXXX","XXXOXOXXX","XXXXXXXXX",".XXXXXXX.","..XXXXX.."],
+  grunt:["..XXXXXX....","..XXXXXX....","..XXXXXX....",".XXXXXXXX...","XXXXXXXXXX..","XXXXXXXXXX..","XXXXXXXXXX..",".XXXXXXXX...","..XX..XX....","..XX..XX....","..XX..XX....","..XX..XX....",".XXX..XXX...",".XXX..XXX..."],
+  elite:["..XXXXXXXX..",".XXXXXXXXXX.",".XXXXXXXXXX.","XXXXXXXXXXXX","XXXOXXXXOXXX","XXXXXXXXXXXX","XXXXXXXXXXXX",".XXXXXXXXXX.",".XX..XX..XX.",".XX..XX..XX.",".XX..XX..XX.",".XX..XX..XX.","XXX..XX..XXX","XXX..XX..XXX"],
+  dragon:["....XX..........XX....","...XXXX........XXXX...","..XXXXXX......XXXXXX..",".XXXXXXXX....XXXXXXXX.","XXXXXXXXXX..XXXXXXXXXX",".XXXXXXXXXXXXXXXXXXXX.","..XX..XXXXXXXXXX..XX..","......XOXXXXOX........",".......XXXXXX.........","........XXXX..........",".........XX...........",".........XX...........","........XXXX.........."],
+  alpha:["....XXXXXXXX....","..XXXXXXXXXXXX..",".XXXXXXXXXXXXXX.","XXXXXXXXXXXXXXXX","XXXXOXXXXXXOXXXX","XXXX.XXXXXX.XXXX","XXXXXXXXXXXXXXXX","XXXXXXXXXXXXXXXX",".XXXXXXXXXXXXXX.","..XX..XXXX..XX..","..XX..XXXX..XX.."],
+  moab:["......XXXXXXXXXXXXXX......","....XXXXXXXXXXXXXXXXXX....","..XXXXXXXXXXXXXXXXXXXXXX..",".XXXXXOXXXXXXXXXXXOXXXXXX.","XXXXXXXXXXXXXXXXXXXXXXXXXX","XXXXXXXXXXXXXXXXXXXXXXXXXX",".XXXXXXXXXXXXXXXXXXXXXXXX.","..XXXXXXXXXXXXXXXXXXXXXX..","....XXXXXXXXXXXXXXXXXX....","......XXXXXXXXXXXXXX......"],
+  liam:["..XXXXXX....","..XXXXXX....","..XXXXXX....",".XXXXXXXX...",".GXXXXXXG...",".GXXXXXXG...","..XXXXXX....",".BXXXXXXB...","..XX..XX....","..XX..XX....","..XX..XX....","..XX..XX....",".XXX..XXX...",".XXX..XXX..."],
+  cake:["....F.....","....O.....","...OOO....","..XXXXX...","..XwXwX...",".XXXXXXX..",".XwXwXwX..","XXXXXXXXX","XwXwXwXwX","XXXXXXXXX"]
+};
+
+function sprite(name, colors, scale){
+  return makeSprite(SPRITES[name], colors, scale||3);
+}
+
+/* ======================= YOUR OWN ART GOES HERE =======================
+   To use real artwork instead of the built-in pixel sprites: put image files
+   (PNG works best, transparent background) in an "art" folder next to this
+   HTML file in your GitHub repo, then paste the relative path below.
+   Leave a slot blank ('') to keep the built-in pixel-art fallback for that piece.
+   Example after uploading art/liam.png:  liam: 'art/liam.png',
+*/
+const SPRITE_IMAGES = {
+  liam: 'art/liam.png',
+  warden: 'art/warden.png',
+  wither: 'art/wither.png',
+  dragon: 'art/dragon.png',
+  zoe: 'art/grizzbolt.png',
+  lily: 'art/lyleen.png',
+  axel: 'art/orserk.png',
+  bloonarius: 'art/bloonarius.png',
+  vortex: 'art/vortex.png',
+  dreadbloon: 'art/dreadbloon.png',
+  trophy: 'art/trophy.png',
+  skull: '',
+  cake: 'art/cake.png'
+};
+
+/* ======================= AUDIO ENGINE ======================= */
+let audioCtx = null;
+let masterGain = null;
+let soundOn = true;
+let musicTimer = null;
+let musicStep = 0;
+
+const NOTE_FREQ = {
+  C3:130.81, D3:146.83, Eb3:155.56, F3:174.61, G3:196.00, Ab3:207.65, Bb3:233.08,
+  C4:261.63, D4:293.66, Eb4:311.13, F4:349.23, G4:392.00, Ab4:415.30, Bb4:466.16,
+  C5:523.25, D5:587.33
+};
+const BASS_PATTERN = ['C3','C3','G3','G3','Ab3','Ab3','G3',null,'F3','F3','C3','C3','G3','G3','C3',null];
+const LEAD_PATTERN  = [null,'Eb4','G4','C5',null,'Bb4','G4',null,null,'F4','Ab4','C5',null,'G4','Eb4',null];
+
+function ensureAudio(){
+  if(audioCtx) return;
+  try{
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = soundOn ? 0.16 : 0;
+    masterGain.connect(audioCtx.destination);
+  }catch(e){ audioCtx = null; }
+}
+
+function tone(freq, startDelay, dur, type, peakVol){
+  if(!audioCtx || !freq) return;
+  const t0 = audioCtx.currentTime + startDelay;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = type || 'square';
+  osc.frequency.setValueAtTime(freq, t0);
+  g.gain.setValueAtTime(0, t0);
+  g.gain.linearRampToValueAtTime(peakVol!=null?peakVol:1, t0+0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+  osc.connect(g); g.connect(masterGain);
+  osc.start(t0);
+  osc.stop(t0+dur+0.02);
+}
+function sequence(notes, type, vol){ notes.forEach(n=>tone(NOTE_FREQ[n.note], n.at, n.dur, type, vol)); }
+
+const sfx = {
+  select(){ ensureAudio(); tone(880, 0, 0.06, 'square', 0.5); },
+  discard(){ ensureAudio(); tone(220, 0, 0.09, 'triangle', 0.5); },
+  play(tier){
+    ensureAudio();
+    if(tier==='STRAIGHT FLUSH'||tier==='FOUR OF A KIND') sequence([{note:'C4',at:0,dur:0.1},{note:'Eb4',at:0.07,dur:0.1},{note:'G4',at:0.14,dur:0.1},{note:'C5',at:0.21,dur:0.24}],'square',0.55);
+    else if(tier==='FULL HOUSE'||tier==='FLUSH'||tier==='STRAIGHT') sequence([{note:'G4',at:0,dur:0.1},{note:'C5',at:0.08,dur:0.2}],'square',0.5);
+    else if(tier==='THREE OF A KIND'||tier==='TWO PAIR'||tier==='PAIR') sequence([{note:'C4',at:0,dur:0.08},{note:'G4',at:0.06,dur:0.14}],'square',0.45);
+    else tone(392, 0, 0.1, 'square', 0.4);
+  },
+  win(){ ensureAudio(); sequence([{note:'C4',at:0,dur:0.1},{note:'G4',at:0.1,dur:0.1},{note:'C5',at:0.2,dur:0.3}],'square',0.5); },
+  shield(){ ensureAudio(); sequence([{note:'C5',at:0,dur:0.08},{note:'D5',at:0.06,dur:0.14}],'triangle',0.45); },
+  lifeLost(){ ensureAudio(); sequence([{note:'F3',at:0,dur:0.14},{note:'C3',at:0.1,dur:0.3}],'triangle',0.55); },
+  perk(){ ensureAudio(); sequence([{note:'C4',at:0,dur:0.08},{note:'Eb4',at:0.05,dur:0.08},{note:'G4',at:0.1,dur:0.08},{note:'C5',at:0.15,dur:0.25}],'square',0.5); },
+  victory(){ ensureAudio(); sequence([{note:'C4',at:0,dur:0.12},{note:'Eb4',at:0.12,dur:0.12},{note:'G4',at:0.24,dur:0.12},{note:'C5',at:0.36,dur:0.5}],'square',0.55); },
+  gameover(){ ensureAudio(); sequence([{note:'C4',at:0,dur:0.2},{note:'Ab3',at:0.18,dur:0.2},{note:'F3',at:0.36,dur:0.5}],'triangle',0.55); }
+};
+
+/* PERSONALIZE HERE: fill this in with a path like 'art/theme.mp3' to use a real
+   music file for the title screen and gameplay, instead of the built-in generated loop.
+   Put the audio file in the same "art" folder as your images. Leave blank to keep the
+   built-in music. */
+const MUSIC_FILE = 'art/theme.mp3';
+/* Same idea, but for the victory and game-over screens — leave blank to use the
+   built-in "end" loop instead, which is a different, more triumphant pattern than
+   the main theme above. */
+const MUSIC_FILE_END = 'art/win-screen.mp3';
+
+const BASS_PATTERN_END = ['C3','C3','C3','C3','F3','F3','G3','G3','C3','C3','C3','C3','G3','G3','C3',null];
+const LEAD_PATTERN_END  = ['C4','Eb4','G4','C5','G4','Eb4','C4',null,'C4','F4','Ab4','C5','G4','Eb4','C4',null];
+
+let fileMusicEl = null;
+let currentMusicVariant = null;
+
+function stopMusic(){
+  clearInterval(musicTimer); musicTimer = null;
+  if(fileMusicEl) fileMusicEl.pause();
+  currentMusicVariant = null;
+}
+
+function startMusic(variant){
+  variant = variant || 'main';
+  const alreadyPlaying = currentMusicVariant===variant && (musicTimer || (fileMusicEl && !fileMusicEl.paused));
+  if(alreadyPlaying) return;
+  stopMusic();
+  currentMusicVariant = variant;
+
+  const file = variant==='end' ? MUSIC_FILE_END : MUSIC_FILE;
+  const bassPat = variant==='end' ? BASS_PATTERN_END : BASS_PATTERN;
+  const leadPat = variant==='end' ? LEAD_PATTERN_END : LEAD_PATTERN;
+
+  if(file){
+    fileMusicEl = new Audio(file);
+    fileMusicEl.loop = true;
+    fileMusicEl.volume = soundOn ? 0.4 : 0;
+    const playPromise = fileMusicEl.play();
+    if(playPromise && typeof playPromise.catch === 'function') playPromise.catch(()=>{});
+    return;
+  }
+  ensureAudio();
+  musicStep = 0;
+  musicTimer = setInterval(()=>{
+    const b = bassPat[musicStep % bassPat.length];
+    const l = leadPat[musicStep % leadPat.length];
+    if(b) tone(NOTE_FREQ[b], 0, 0.19, 'triangle', 0.32);
+    if(l) tone(NOTE_FREQ[l], 0, 0.16, 'square', 0.22);
+    musicStep++;
+  }, 214);
+}
+function toggleSound(){
+  soundOn = !soundOn;
+  ensureAudio();
+  if(masterGain) masterGain.gain.value = soundOn ? 0.16 : 0;
+  if(fileMusicEl) fileMusicEl.volume = soundOn ? 0.4 : 0;
+  ['sound-toggle-title','sound-toggle-game'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el){ el.textContent = 'Sound: '+(soundOn?'On':'Off'); el.classList.toggle('off', !soundOn); }
+  });
+}
+
+/* ======================= VISUAL FX HELPERS ======================= */
+function shakeScreen(){ const el=document.getElementById('app'); el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+function hitFlash(){ const el=document.getElementById('enemy-card'); if(!el)return; el.classList.remove('hit-flash'); void el.offsetWidth; el.classList.add('hit-flash'); }
+function floatDamage(amount){
+  const host=document.getElementById('enemy-card'); if(!host)return;
+  const el=document.createElement('div'); el.className='dmg-float'; el.textContent='+'+amount;
+  host.appendChild(el); setTimeout(()=>el.remove(),950);
+}
+function burstParticles(){
+  const host=document.getElementById('enemy-card'); if(!host)return;
+  for(let i=0;i<9;i++){
+    const p=document.createElement('div'); p.className='particle';
+    const angle=(Math.PI*2*i)/9+Math.random()*0.4, dist=40+Math.random()*24;
+    p.style.setProperty('--px', Math.cos(angle)*dist+'px');
+    p.style.setProperty('--py', Math.sin(angle)*dist+'px');
+    p.style.background = i%2===0 ? 'var(--gold)' : 'var(--frost)';
+    host.appendChild(p); setTimeout(()=>p.remove(),600);
+  }
+}
+function launchConfetti(){
+  const colors = ['#e8b64a','#c8432f','#8fd8e8','#ece1c4','#4a6b42'];
+  for(let i=0;i<44;i++){
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.left = Math.random()*100+'vw';
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    p.style.animationDelay = (Math.random()*0.7)+'s';
+    p.style.animationDuration = (1.8+Math.random()*1.3)+'s';
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(), 3600);
+  }
+}
+
+/* ======================= DATA: STANCES ======================= */
+const STANCES = {
+  mine: {name:'HEAVY', cls:'suit-mine', sprite:'pickaxe', pipClass:'pip-heavy', colors:{H:'#5c4a22', D:'#3a2e1f'}},
+  pal:  {name:'CREW',  cls:'suit-pal',  sprite:'paw',     pipClass:'pip-crew',  colors:{X:'#5c4a22'}},
+  pop:  {name:'SWIFT', cls:'suit-pop',  sprite:'balloon', pipClass:'pip-swift', colors:{X:'#6b2020', S:'#3a2e1f'}},
+  ice:  {name:'FOCUS', cls:'suit-ice',  sprite:'baseball',pipClass:'pip-focus', colors:{X:'#2b323c', O:'#5f7d8c'}}
+};
+const VALUE_LABELS = {11:'J',12:'Q',13:'K',14:'A'};
+
+/* ======================= DATA: HAND TIERS ======================= */
+const TIER_TABLE = [
+  {name:'HIGH CARD', mult:1.0},
+  {name:'PAIR', mult:1.15},
+  {name:'TWO PAIR', mult:1.3},
+  {name:'THREE OF A KIND', mult:1.5},
+  {name:'STRAIGHT', mult:1.7},
+  {name:'FLUSH', mult:1.9},
+  {name:'FULL HOUSE', mult:2.2},
+  {name:'FOUR OF A KIND', mult:2.6},
+  {name:'STRAIGHT FLUSH', mult:3.2}
+];
+function evaluateHand(cards){
+  const n = cards.length;
+  const counts = {};
+  cards.forEach(c=>counts[c.value]=(counts[c.value]||0)+1);
+  const countVals = Object.values(counts).sort((a,b)=>b-a);
+  const suits = new Set(cards.map(c=>c.suit));
+  const isFlush = suits.size===1 && n>=5;
+  const uniqueVals = [...new Set(cards.map(c=>c.value))].sort((a,b)=>a-b);
+  const isStraight = uniqueVals.length===n && n>=3 && (uniqueVals[uniqueVals.length-1]-uniqueVals[0]===n-1);
+
+  let entry;
+  if(isStraight && isFlush) entry = TIER_TABLE[8];
+  else if(countVals[0]===4) entry = TIER_TABLE[7];
+  else if(countVals[0]===3 && countVals[1]>=2) entry = TIER_TABLE[6];
+  else if(isFlush) entry = TIER_TABLE[5];
+  else if(isStraight) entry = TIER_TABLE[4];
+  else if(countVals[0]===3) entry = TIER_TABLE[3];
+  else if(countVals[0]===2 && countVals[1]===2) entry = TIER_TABLE[2];
+  else if(countVals[0]===2) entry = TIER_TABLE[1];
+  else entry = TIER_TABLE[0];
+
+  return {tier:entry.name, mult:entry.mult, isFlush, isStraight, countVals, dominantSuit:isFlush?cards[0].suit:null};
+}
+
+/* ======================= DATA: EVENTS ======================= */
+const EVENTS = {
+  cod: {
+    title:'LOBBY FLASHBACK',
+    flavor:"Somewhere, an old lobby still remembers him. Retired doesn't mean forgotten.",
+    choices:[
+      {label:'RUN IT BACK', desc:"Old instincts don't fade. Weak hands play at Pair-strength or better, every fight.", apply:s=>{s.perks.retiredGoatMinTier=true;}, toast:'Old habits, still sharp'},
+      {label:'LET IT STAY RETIRED', desc:'Heal 1 life instead.', apply:s=>{if(s.lives<3)s.lives++;}, toast:'Healed 1 life'}
+    ]
+  },
+  /* PERSONALIZE HERE: this event is written abstractly on purpose (no spoilers).
+     If you want to name his favorite character directly (e.g. "Zoro"), edit the
+     title/flavor/choice text below — it's just plain strings, safe to change. */
+  onepiece: {
+    title:'THE LONG WATCH',
+    flavor:"He's got a running list of theories about what the One Piece actually is. Confidence has never been the issue.",
+    choices:[
+      {label:'ASK HIM ANYWAY', desc:'Three blades, one purpose. FOCUS cards deal +3 extra damage, always.', apply:s=>{s.perks.threeBladesBonus+=3;}, toast:'Focus sharpened'},
+      {label:'FIGURE IT OUT YOURSELF', desc:'Heal 1 life instead.', apply:s=>{if(s.lives<3)s.lives++;}, toast:'Healed 1 life'}
+    ]
+  },
+  wrestling: {
+    title:'MINISINK',
+    flavor:"Minisink Valley's known for wrestling. He went with tennis, swimming, and baseball instead.",
+    choices:[
+      {label:'MAKE THE CALL', desc:"Old umpire instincts. Three-of-a-kind or better always deals +4 extra damage.", apply:s=>{s.perks.minisinkBonus+=4;}, toast:'Call stands'},
+      {label:'STAY QUIET', desc:'Heal 1 life instead.', apply:s=>{if(s.lives<3)s.lives++;}, toast:'Healed 1 life'}
+    ]
+  }
+};
+
+/* ======================= DATA: WORLDS / MAP ======================= */
+function mkEnemy(name, spriteName, tint, target, flavor, extra){
+  return Object.assign({name, spriteName, tint, target, flavor}, extra||{});
+}
+
+const WORLDS = [
+  {
+    key:'bloons', name:'BLOONS', desc:"Territory One. Attrition, not strength, is the danger here.",
+    sequence:[
+      {type:'fight', enemy:mkEnemy('Bloonarius','grunt','#7a2f2f',48,'Splits into lesser threats when struck. Numbers over strength.',{imageKey:'bloonarius'})},
+      {type:'event', event:EVENTS.wrestling},
+      {type:'fork', elite:mkEnemy('Vortex','elite','#2a2a2a',72,'Pulls at range. Closes distance you didn\'t give up.',{imageKey:'vortex'})},
+      {type:'boss', enemy:mkEnemy('Dreadbloon','moab','#333c46',90,'Armored, relentless, and splits under pressure. Plan for two fights, not one.',{gimmick:'moabSplit', imageKey:'dreadbloon'})}
+    ]
+  },
+  {
+    key:'palworld', name:'PALWORLD', desc:'Territory Two. Wild ground. Everything here adapts fast.',
+    sequence:[
+      {type:'fight', enemy:mkEnemy('Zoe & Grizzbolt','grunt','#6a6f5f',46,'Trainer and beast, working in sync. Break the rhythm, break the fight.',{imageKey:'zoe'})},
+      {type:'event', event:EVENTS.onepiece},
+      {type:'fork', elite:mkEnemy('Lily & Lyleen','elite','#2f5138',70,'Deceptively calm opener. Escalates fast.',{imageKey:'lily'})},
+      {type:'boss', enemy:mkEnemy('Axel & Orserk','alpha','#3a6b52',102,'Coordinated assault. No opening lasts long.',{gimmick:'palLimitDiscards', imageKey:'axel'})}
+    ]
+  },
+  {
+    key:'minecraft', name:'MINECRAFT', desc:"Territory Three. Overrun and fortified. Something old holds the far end.",
+    sequence:[
+      {type:'fight', enemy:mkEnemy('The Warden','grunt','#2a2622',44,'Blind. Hunts by vibration alone. Do not stay still, do not stay loud.',{imageKey:'warden'})},
+      {type:'event', event:EVENTS.cod},
+      {type:'fork', elite:mkEnemy('The Wither','elite','#2f2a33',68,'Three angles of attack at once. Cover only helps for so long.',{imageKey:'wither'})},
+      {type:'boss', enemy:mkEnemy('Ender Dragon','dragon','#5a4a70',96,'Regenerates against weak strikes. Commit fully or not at all.',{gimmick:'dragonHeal', imageKey:'dragon'})}
+    ]
+  }
+];
+
+/* ======================= DATA: BUFFS ======================= */
+const ALL_PERKS = [
+  {id:'president', name:'PRESIDENT OF THE YEAR', desc:"There's a plaque somewhere. Doesn't matter here. +1 play, every fight.", apply:s=>s.perks.maxPlays+=1},
+  {id:'chef', name:"CHEF'S SPECIAL", desc:"Never burns a dish. Won't burn a discard either. +1 discard, every fight.", apply:s=>s.perks.maxDiscards+=1},
+  {id:'god2', name:'GOD 2.0', desc:'Some usernames are just accurate. Flushes deal +5 extra damage.', apply:s=>s.perks.flushBonus+=5},
+  {id:'chubbz', name:'BIGCHUBBZ', desc:'Go big. Play up to 6 cards per hand instead of 5.', apply:s=>s.perks.maxPlaySize=6},
+  {id:'walkoff', name:'WALK-OFF', desc:"Down to your last life? The math changes. Damage ×1.5.", apply:s=>s.perks.clutch=true},
+  {id:'billsmafia', name:'BILLS MAFIA', desc:"The Comeback lives in him. First play after taking a hit deals +8 bonus damage.", apply:s=>s.perks.comebackBonus=8},
+  {id:'irishluck', name:'LUCK OF THE IRISH', desc:"First discard each fight costs nothing.", apply:s=>s.perks.freeDiscardIrish=true},
+  {id:'reaper', name:'IRISHREAPER868', desc:'The first card you draw each fight is guaranteed double digits.', apply:s=>s.perks.guaranteedHighCard=true}
+];
+
+const TICKER_LINES = [
+  "Knows every World Series winner. All of them. Don't test it.",
+  "Retired from competitive Call of Duty. No comeback planned.",
+  "From Buffalo. Still cold about it, in the good way.",
+  "Cooks. Rarely burns anything. Suspicious, honestly.",
+  "Somewhere there's a plaque. It says President of the Year. It's dusty.",
+  "Three blades, one purpose. Ask him what that means if you've got a minute.",
+  "Was a camp counselor. Kept forty kids alive, several summers running.",
+  "Went to Jesus camp as a kid. Composure unmatched since.",
+  "New number today. Stats otherwise unchanged."
+];
+
+/* ======================= STATE ======================= */
+let state = null;
+function freshState(){
+  return {
+    worldIdx:0, mapIdx:-1, lives:3,
+    perkPool: shuffle([...ALL_PERKS]),
+    perks:{
+      maxPlays:2, maxDiscards:2, handSize:8, maxPlaySize:5,
+      flushBonus:0, clutch:false, comebackBonus:0, freeDiscardIrish:false,
+      guaranteedHighCard:false, retiredGoatMinTier:false, threeBladesBonus:0, minisinkBonus:0
+    },
+    earnedPerks:[],
+    comebackPending:false,
+    stats:{totalDamage:0, livesLost:0, biggestHit:0},
+    wave:null
+  };
+}
+
+/* ======================= UTIL ======================= */
+function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function buildDeck(){ const deck=[]; Object.keys(STANCES).forEach(suit=>{ for(let v=2; v<=14; v++) deck.push({suit,value:v}); }); return shuffle(deck); }
+function valueLabel(v){ return VALUE_LABELS[v] || String(v); }
+function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(window._toastTimer); window._toastTimer=setTimeout(()=>t.classList.remove('show'),1700);
+}
+function toggleModal(show){ document.getElementById('modal-backdrop').classList.toggle('active', show); }
+function mountSprite(containerId, spriteName, colorMap, scale, imageKey){
+  const el=document.getElementById(containerId); if(!el) return;
+  el.innerHTML='';
+  if(imageKey && SPRITE_IMAGES[imageKey]){
+    const img = document.createElement('img');
+    img.src = SPRITE_IMAGES[imageKey];
+    img.alt = imageKey;
+    img.style.width = 'auto';
+    img.style.height = 'auto';
+    img.style.maxWidth = Math.min(SPRITES[spriteName][0].length*scale, 260)+'px';
+    img.style.maxHeight = Math.min(SPRITES[spriteName].length*scale, 220)+'px';
+    img.style.imageRendering = 'pixelated';
+    el.appendChild(img);
+    return;
+  }
+  el.appendChild(sprite(spriteName, colorMap, scale));
+}
+
+let tickerIdx = 0;
+function rotateTicker(){ document.getElementById('ticker-text').textContent = TICKER_LINES[tickerIdx % TICKER_LINES.length]; tickerIdx++; }
+setInterval(rotateTicker, 3400);
+
+function initModalIcons(){
+  Object.entries({'modal-mine':'mine','modal-pal':'pal','modal-pop':'pop','modal-ice':'ice'}).forEach(([id,key])=>{
+    const el = document.getElementById(id);
+    if(el){ el.innerHTML=''; const p=document.createElement('div'); p.className='pip '+STANCES[key].pipClass; el.appendChild(p); }
+  });
+}
+function initLiamSprite(){
+  mountSprite('liam-sprite', 'liam', {X:'#d8c9a8', G:'#3f6b4a', B:'#22301c'}, 6, 'liam');
+  const el = document.getElementById('liam-sprite');
+  if(el) el.classList.add('idle-bob');
+}
+
+/* ======================= FLOW ======================= */
+function startGame(){
+  state = freshState();
+  rotateTicker();
+  ensureAudio();
+  startMusic('main');
+  showWorldIntro();
+}
+function initTitleSprites(){
+  mountSprite('title-liam-sprite', 'liam', {X:'#d8c9a8', G:'#3f6b4a', B:'#22301c'}, 10, 'liam');
+}
+function mainMenu(){
+  showScreen('screen-title');
+  rotateTicker();
+  initTitleSprites();
+  startMusic('main');
+}
+function currentWorld(){ return WORLDS[state.worldIdx]; }
+function currentNode(){ return currentWorld().sequence[state.mapIdx]; }
+
+function showWorldIntro(){
+  const w = currentWorld();
+  const rep = w.sequence.find(n=>n.type==='fight').enemy;
+  mountSprite('wi-sprite', rep.spriteName, {X:rep.tint, H:rep.tint, D:'#8a5a35', O:'#22301c', S:'#8a5a35'}, 10, rep.imageKey);
+  document.getElementById('wi-sprite').classList.add('idle-bob');
+  document.getElementById('wi-eyebrow').textContent = 'WORLD ' + (state.worldIdx+1) + ' OF 3';
+  document.getElementById('wi-title').textContent = w.name;
+  document.getElementById('wi-desc').textContent = w.desc;
+  showScreen('screen-worldintro');
+}
+
+function advanceMap(){
+  state.mapIdx += 1;
+  const world = currentWorld();
+  const node = world.sequence[state.mapIdx];
+  if(!node) return;
+  if(node.type==='fight') beginWave(node.enemy,'fight');
+  else if(node.type==='event') showEventScreen(node.event);
+  else if(node.type==='fork') showForkScreen(node);
+  else if(node.type==='boss') beginWave(node.enemy,'boss');
+}
+
+function beginWave(enemyDef, kind){
+  const deck = buildDeck();
+  const handSize = state.perks.handSize;
+  let hand = deck.splice(0, handSize);
+
+  if(state.perks.guaranteedHighCard && !hand.some(c=>c.value>=10)){
+    let worstIdx=0;
+    hand.forEach((c,i)=>{ if(c.value<hand[worstIdx].value) worstIdx=i; });
+    hand[worstIdx] = {suit:hand[worstIdx].suit, value:10+Math.floor(Math.random()*5)};
+  }
+
+  const discCap = enemyDef.gimmick==='palLimitDiscards' ? Math.min(state.perks.maxDiscards,1) : state.perks.maxDiscards;
+
+  state.wave = {
+    enemyDef, kind, deck, hand,
+    selected:new Set(),
+    playsLeft: state.perks.maxPlays,
+    discardsLeft: discCap,
+    damage:0, target:enemyDef.target,
+    shielded:false, resolved:false, splitTriggered:false, freeDiscardUsed:false
+  };
+  renderGame();
+  showScreen('screen-game');
+}
+
+function renderLives(){
+  const fill = document.getElementById('liam-hp-fill');
+  const label = document.getElementById('liam-hp-label');
+  if(!fill || !label) return;
+  fill.style.width = Math.round((state.lives/3)*100)+'%';
+  label.textContent = 'HP '+state.lives+'/3';
+}
+function liamHitFlash(){
+  const el = document.getElementById('liam-sprite');
+  if(!el) return;
+  el.classList.remove('hit-flash'); void el.offsetWidth; el.classList.add('hit-flash');
+}
+function renderPerksStrip(){
+  const wrap=document.getElementById('perks-strip'); wrap.innerHTML='';
+  if(state.earnedPerks.length===0){
+    const chip=document.createElement('div'); chip.className='perk-chip empty'; chip.textContent='none yet'; wrap.appendChild(chip); return;
+  }
+  state.earnedPerks.forEach(p=>{ const chip=document.createElement('div'); chip.className='perk-chip'; chip.textContent=p.name; wrap.appendChild(chip); });
+}
+function enemyColorMap(ed){ return {X:ed.tint, H:ed.tint, D:'#5a3a20', O:'#1c1409', S:'#5a3a20'}; }
+
+function renderGame(){
+  const w = state.wave, ed = w.enemyDef;
+  document.getElementById('hud-world').textContent = 'WORLD ' + (state.worldIdx+1) + ' · ' + currentWorld().name;
+  renderLives();
+  initLiamSprite();
+  mountSprite('enemy-sprite', ed.spriteName, enemyColorMap(ed), ed.gimmick ? 7 : 6, ed.imageKey);
+  document.getElementById('enemy-sprite').classList.add('idle-bob');
+  document.getElementById('enemy-name').textContent = ed.name;
+  document.getElementById('enemy-boss-tag').style.display = w.kind==='boss' ? 'block' : 'none';
+  document.getElementById('enemy-card').classList.toggle('boss', w.kind==='boss');
+  document.getElementById('enemy-flavor').textContent = ed.flavor || '';
+
+  const pct = Math.min(100, Math.round((w.damage/w.target)*100));
+  const fill = document.getElementById('progress-fill');
+  fill.style.width = pct+'%';
+  fill.classList.toggle('shielded', w.shielded);
+  document.getElementById('dmg-current').textContent = w.damage;
+  document.getElementById('dmg-target').textContent = '/ '+w.target+' DMG'+(w.shielded ? ' · SHIELDED' : '');
+
+  document.getElementById('stat-plays').textContent = w.playsLeft;
+  document.getElementById('stat-discards').textContent = w.discardsLeft;
+  document.getElementById('stat-selected').textContent = w.selected.size;
+  document.getElementById('hand-hint').textContent = 'up to '+state.perks.maxPlaySize;
+
+  renderHand();
+  updateHandTierLabel();
+  renderPerksStrip();
+
+  const cap = state.perks.maxPlaySize;
+  document.getElementById('btn-play').disabled = !(!w.resolved && w.selected.size>=1 && w.selected.size<=cap && w.playsLeft>0);
+  document.getElementById('btn-discard').disabled = !(!w.resolved && w.selected.size>=1 && w.selected.size<=cap && w.discardsLeft>0);
+}
+
+function updateHandTierLabel(){
+  const w = state.wave;
+  const label = document.getElementById('hand-tier-label');
+  if(w.selected.size>=1){
+    const cards = Array.from(w.selected).map(i=>w.hand[i]);
+    const {tier} = evaluateHand(cards);
+    label.textContent = tier;
+  } else {
+    label.textContent = 'Your Hand';
+  }
+}
+
+function refreshSelectionUI(){
+  const w = state.wave;
+  const cap = state.perks.maxPlaySize;
+  document.getElementById('stat-selected').textContent = w.selected.size;
+  updateHandTierLabel();
+  document.getElementById('btn-play').disabled = !(!w.resolved && w.selected.size>=1 && w.selected.size<=cap && w.playsLeft>0);
+  document.getElementById('btn-discard').disabled = !(!w.resolved && w.selected.size>=1 && w.selected.size<=cap && w.discardsLeft>0);
+}
+
+function renderHand(){
+  const grid=document.getElementById('hand-grid'); grid.innerHTML='';
+  state.wave.hand.forEach((card, idx)=>{
+    const s = STANCES[card.suit];
+    const el=document.createElement('div');
+    el.className='card '+s.cls+(state.wave.selected.has(idx)?' selected':'');
+    const top=document.createElement('div'); top.className='corner'; top.textContent=valueLabel(card.value);
+    const mid=document.createElement('div'); mid.className='pip '+s.pipClass;
+    const bot=document.createElement('div'); bot.className='corner br'; bot.textContent=s.name;
+    el.appendChild(top); el.appendChild(mid); el.appendChild(bot);
+    el.onclick=()=>toggleCard(idx);
+    grid.appendChild(el);
+  });
+}
+
+function toggleCard(idx){
+  const sel = state.wave.selected;
+  const cap = state.perks.maxPlaySize;
+  if(sel.has(idx)){ sel.delete(idx); }
+  else {
+    if(sel.size>=cap){ toast('Max '+cap+' cards per play'); return; }
+    sel.add(idx);
+  }
+  sfx.select();
+  // only toggle the one card that was clicked — never rebuild the whole hand here
+  const grid = document.getElementById('hand-grid');
+  const cardEl = grid.children[idx];
+  if(cardEl) cardEl.classList.toggle('selected', sel.has(idx));
+  refreshSelectionUI();
+}
+
+/* ======================= SCORING ======================= */
+function computeDamage(cards){
+  const {tier, mult, isFlush, countVals, dominantSuit} = evaluateHand(cards);
+  let base = cards.reduce((s,c)=>s+c.value,0);
+  let finalMult = mult;
+  let flat = 0;
+  const effectMsgs = [];
+
+  if(state.perks.retiredGoatMinTier && tier==='HIGH CARD'){
+    finalMult = TIER_TABLE[1].mult;
+    effectMsgs.push('Old instincts kick in');
+  }
+
+  if(isFlush){
+    flat += state.perks.flushBonus;
+    if(dominantSuit==='mine'){ flat+=5; effectMsgs.push('Heavy Strike +5'); }
+    if(dominantSuit==='pal'){ if(state.lives<3){ state.lives++; effectMsgs.push('Crew heals 1 life'); } }
+    if(dominantSuit==='pop'){ flat+=8; effectMsgs.push('Swift Burst +8'); }
+    if(dominantSuit==='ice'){ state.wave.shielded=true; effectMsgs.push('Focus Shield gained'); }
+  }
+
+  if(state.perks.threeBladesBonus>0){
+    const focusCount = cards.filter(c=>c.suit==='ice').length;
+    if(focusCount>0) flat += focusCount*state.perks.threeBladesBonus;
+  }
+
+  if(state.perks.minisinkBonus>0 && countVals[0]>=3){
+    flat += state.perks.minisinkBonus;
+    effectMsgs.push('Takedown +'+state.perks.minisinkBonus);
+  }
+
+  let dmg = Math.round(base*finalMult) + flat;
+
+  if(state.perks.clutch && state.lives===1){
+    dmg = Math.round(dmg*1.5);
+    effectMsgs.push('Walk-off ×1.5');
+  }
+  if(state.comebackPending && state.perks.comebackBonus>0){
+    dmg += state.perks.comebackBonus;
+    effectMsgs.push('The Comeback +'+state.perks.comebackBonus);
+    state.comebackPending = false;
+  }
+
+  return {dmg, effectMsgs, tier, isFlush};
+}
+
+/* ======================= ACTIONS ======================= */
+function playHand(){
+  const w = state.wave;
+  const cap = state.perks.maxPlaySize;
+  if(w.resolved || w.selected.size<1 || w.selected.size>cap || w.playsLeft<=0) return;
+
+  const idxs = Array.from(w.selected).sort((a,b)=>b-a);
+  const cards = idxs.map(i=>w.hand[i]).reverse();
+
+  const {dmg, effectMsgs, tier} = computeDamage(cards);
+  w.damage += dmg;
+  w.playsLeft -= 1;
+  state.stats.totalDamage += dmg;
+  if(dmg > state.stats.biggestHit) state.stats.biggestHit = dmg;
+
+  idxs.forEach(i=>w.hand.splice(i,1));
+  const need = state.perks.handSize - w.hand.length;
+  for(let i=0;i<need && w.deck.length>0;i++) w.hand.push(w.deck.pop());
+  w.selected.clear();
+
+  const ed = w.enemyDef;
+  if(w.kind==='boss' && ed.gimmick==='dragonHeal' && tier==='HIGH CARD'){
+    w.damage = Math.max(0, w.damage-12);
+    effectMsgs.push('Dragon regenerates');
+  }
+  if(w.kind==='boss' && ed.gimmick==='moabSplit' && !w.splitTriggered && w.damage >= w.target*0.5){
+    w.splitTriggered = true;
+    w.target += 40;
+    toast('Dreadbloon splits into a second wave!');
+  }
+
+  const label = tier+' — +'+dmg+' DMG' + (effectMsgs.length? '  ('+effectMsgs.join(', ')+')':'');
+  toast(label);
+  hitFlash();
+  floatDamage(dmg);
+  sfx.play(tier);
+  if(tier==='FLUSH'||tier==='FULL HOUSE'||tier==='FOUR OF A KIND'||tier==='STRAIGHT FLUSH') burstParticles();
+
+  const willWin = w.damage >= w.target;
+  const willLose = !willWin && w.playsLeft<=0;
+  if(willWin || willLose) w.resolved = true;
+
+  renderGame();
+
+  if(willWin || willLose){
+    setTimeout(()=>{
+      if(state.wave !== w) return;
+      if(willWin) resolveWaveWin(); else resolveWaveLoss();
+    }, 550);
+  }
+}
+
+function discardSelected(){
+  const w = state.wave;
+  const cap = state.perks.maxPlaySize;
+  if(w.resolved || w.selected.size<1 || w.selected.size>cap || w.discardsLeft<=0) return;
+  const idxs = Array.from(w.selected).sort((a,b)=>b-a);
+  idxs.forEach(i=>{ w.hand.splice(i,1); if(w.deck.length>0) w.hand.push(w.deck.pop()); });
+  w.selected.clear();
+  sfx.discard();
+  if(state.perks.freeDiscardIrish && !w.freeDiscardUsed){
+    w.freeDiscardUsed = true;
+    toast('Luck of the Irish — that one was free');
+  } else {
+    w.discardsLeft -= 1;
+    toast('Redrew '+idxs.length+' card'+(idxs.length>1?'s':''));
+  }
+  renderGame();
+}
+
+function renderVictoryStats(){
+  const s = state.stats;
+  const el = document.getElementById('victory-stats');
+  if(!el) return;
+  el.innerHTML =
+    'Total Damage: <b>'+s.totalDamage+'</b><br>'+
+    'Lives Lost: <b>'+s.livesLost+'</b><br>'+
+    'Biggest Hit: <b>'+s.biggestHit+'</b><br>'+
+    'Buffs Earned: <b>'+state.earnedPerks.length+'</b>';
+}
+
+function resolveWaveWin(){
+  const w = state.wave;
+  const ed = w.enemyDef;
+  toast(ed.name+' defeated');
+  sfx.win();
+
+  setTimeout(()=>{
+    if(w.kind==='boss'){
+      if(state.worldIdx >= WORLDS.length-1){
+        mountSprite('victory-sprite','trophy',{X:'#e8b64a'},8,'trophy');
+        mountSprite('cake-sprite','cake',{F:'#e8b64a', O:'#ece1c4', X:'#e0a8b8', w:'#ece1c4'},8,'cake');
+        renderVictoryStats();
+        sfx.victory();
+        showScreen('screen-victory');
+        launchConfetti();
+        startMusic('end');
+      } else {
+        state.worldIdx += 1;
+        state.mapIdx = -1;
+        showWorldIntro();
+      }
+    } else if(w.kind==='elite'){
+      showPerkChoice();
+    } else {
+      advanceMap();
+    }
+  }, 450);
+}
+
+function resolveWaveLoss(){
+  const w = state.wave;
+  if(w.shielded){
+    w.shielded = false;
+    sfx.shield();
+    toast('Shield absorbed the hit');
+    setTimeout(()=>beginWave(w.enemyDef, w.kind), 650);
+    return;
+  }
+  state.lives -= 1;
+  state.stats.livesLost += 1;
+  state.comebackPending = true;
+  shakeScreen();
+  liamHitFlash();
+  sfx.lifeLost();
+  if(state.lives<=0){
+    document.getElementById('gameover-text').textContent =
+      'Fell to the '+w.enemyDef.name+'. Even the best runs end sometimes.';
+    mountSprite('gameover-sprite','skull',{X:'#ece1c4', O:'#181109'},8,'skull');
+    setTimeout(()=>{ sfx.gameover(); showScreen('screen-gameover'); }, 350);
+  } else {
+    toast('Took the hit — '+state.lives+(state.lives===1?' life left':' lives left'));
+    setTimeout(()=>beginWave(w.enemyDef, w.kind), 650);
+  }
+}
+
+/* ======================= PERK CHOICE (Elite reward) ======================= */
+const USERNAME_PERK_IDS = ['god2','chubbz','reaper'];
+function pickPerkOptions(pool){
+  const shuffled = shuffle(pool);
+  const usernamePicks = shuffled.filter(p=>USERNAME_PERK_IDS.includes(p.id));
+  const otherPicks = shuffled.filter(p=>!USERNAME_PERK_IDS.includes(p.id));
+  // never offer two username buffs side by side
+  if(usernamePicks.length>=1 && otherPicks.length>=1){
+    return [usernamePicks[0], otherPicks[0]];
+  }
+  return shuffled.slice(0,2);
+}
+function showPerkChoice(){
+  if(state.perkPool.length===0){ advanceMap(); return; }
+  const options = pickPerkOptions(state.perkPool);
+  const wrap=document.getElementById('perk-options'); wrap.innerHTML='';
+  options.forEach(p=>{
+    const el=document.createElement('div'); el.className='pixel-frame perk-card';
+    el.innerHTML = '<div class="pname">'+p.name+'</div><div class="pdesc">'+p.desc+'</div>';
+    el.onclick=()=>{
+      p.apply(state);
+      state.earnedPerks.push(p);
+      state.perkPool = state.perkPool.filter(x=>x.id!==p.id);
+      sfx.perk();
+      toast('Unlocked: '+p.name);
+      advanceMap();
+    };
+    wrap.appendChild(el);
+  });
+  showScreen('screen-perk');
+}
+
+/* ======================= EVENT SCREEN ======================= */
+function showEventScreen(event){
+  document.getElementById('event-title').textContent = event.title;
+  document.getElementById('event-flavor').textContent = event.flavor;
+  const wrap=document.getElementById('event-options'); wrap.innerHTML='';
+  event.choices.forEach(ch=>{
+    const el=document.createElement('div'); el.className='pixel-frame perk-card';
+    el.innerHTML = '<div class="pname">'+ch.label+'</div><div class="pdesc">'+ch.desc+'</div>';
+    el.onclick=()=>{
+      ch.apply(state);
+      sfx.perk();
+      toast(ch.toast || 'Choice made');
+      advanceMap();
+    };
+    wrap.appendChild(el);
+  });
+  showScreen('screen-event');
+}
+
+/* ======================= FORK SCREEN ======================= */
+function showForkScreen(node){
+  const wrap=document.getElementById('fork-options'); wrap.innerHTML='';
+
+  const eliteCard=document.createElement('div'); eliteCard.className='pixel-frame perk-card';
+  eliteCard.innerHTML = '<div class="pname">FIGHT: '+node.elite.name.toUpperCase()+'</div><div class="pdesc">'+node.elite.flavor+' Tougher fight — wins a guaranteed buff.</div>';
+  eliteCard.onclick=()=>beginWave(node.elite,'elite');
+
+  const restCard=document.createElement('div'); restCard.className='pixel-frame perk-card';
+  restCard.innerHTML = '<div class="pname">REST</div><div class="pdesc">Skip the fight. Something nearby has a candle lit on it. Heal 1 life and move on.</div>';
+  restCard.onclick=()=>{ if(state.lives<3) state.lives++; sfx.shield(); toast('Rested — healed 1 life'); advanceMap(); };
+
+  wrap.appendChild(eliteCard); wrap.appendChild(restCard);
+  showScreen('screen-fork');
+}
+
+/* ======================= BOOT ======================= */
+initModalIcons();
+rotateTicker();
+initTitleSprites();
+
+// Browsers block audio until the user interacts with the page at all —
+// this fires on the very first tap/click/key anywhere, so music starts
+// as close to "on open" as browsers allow, not specifically on Start Run.
+function firstInteractionMusicStart(){
+  if(!currentMusicVariant) startMusic('main');
+  document.removeEventListener('pointerdown', firstInteractionMusicStart);
+  document.removeEventListener('keydown', firstInteractionMusicStart);
+}
+document.addEventListener('pointerdown', firstInteractionMusicStart, {once:true});
+document.addEventListener('keydown', firstInteractionMusicStart, {once:true});
+
+</script>
+</body>
+</html>
