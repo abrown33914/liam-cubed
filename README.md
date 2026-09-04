@@ -2,7 +2,7 @@
 
 A pixel-art boss-rush card game, built as a birthday gift.
 
-Play it live: *[(abrown33914.github.io/liam-cubed](https://abrown33914.github.io/liam-cubed/)*
+Play it live: *[abrown33914.github.io/liam-cubed](https://abrown33914.github.io/liam-cubed/)*
 
 ---
 
