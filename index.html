@@ -894,8 +894,16 @@ function initLiamSprite(){
   if(el) el.classList.add('idle-bob');
 }
 
+function trackEvent(name, data = {}) {
+  if (window.umami) {
+    umami.track(name, data);
+  }
+}
+
 /* ======================= FLOW ======================= */
 function startGame(){
+  trackEvent('game_started');
+
   state = freshState();
   rotateTicker();
   ensureAudio();
@@ -916,6 +924,12 @@ function currentNode(){ return currentWorld().sequence[state.mapIdx]; }
 
 function showWorldIntro(){
   const w = currentWorld();
+
+  trackEvent('world_started', {
+    world: w.name,
+    world_number: state.worldIdx + 1
+  });
+
   const rep = w.sequence.find(n=>n.type==='fight').enemy;
   mountSprite('wi-sprite', rep.spriteName, {X:rep.tint, H:rep.tint, D:'#8a5a35', O:'#22301c', S:'#8a5a35'}, 10, rep.imageKey);
   document.getElementById('wi-sprite').classList.add('idle-bob');
@@ -1197,12 +1211,27 @@ function renderVictoryStats(){
 function resolveWaveWin(){
   const w = state.wave;
   const ed = w.enemyDef;
+
+  trackEvent('enemy_defeated', {
+    enemy: ed.name,
+    type: w.kind,
+    world: currentWorld().name
+  });
+
   toast(ed.name+' defeated');
   sfx.win();
 
   setTimeout(()=>{
     if(w.kind==='boss'){
       if(state.worldIdx >= WORLDS.length-1){
+
+        trackEvent('game_completed', {
+          total_damage: state.stats.totalDamage,
+          lives_lost: state.stats.livesLost,
+          biggest_hit: state.stats.biggestHit,
+          buffs_earned: state.earnedPerks.length
+        });
+
         mountSprite('victory-sprite','trophy',{X:'#e8b64a'},8,'trophy');
         mountSprite('cake-sprite','cake',{F:'#e8b64a', O:'#ece1c4', X:'#e0a8b8', w:'#ece1c4'},8,'cake');
         renderVictoryStats();
@@ -1239,6 +1268,12 @@ function resolveWaveLoss(){
   liamHitFlash();
   sfx.lifeLost();
   if(state.lives<=0){
+
+    trackEvent('game_over', {
+      enemy: w.enemyDef.name,
+      world: currentWorld().name
+    });
+
     document.getElementById('gameover-text').textContent =
       'Fell to the '+w.enemyDef.name+'. Even the best runs end sometimes.';
     mountSprite('gameover-sprite','skull',{X:'#ece1c4', O:'#181109'},8,'skull');
