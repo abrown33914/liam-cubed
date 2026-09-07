@@ -638,6 +638,7 @@ function startMusic(variant){
   if(file){
     fileMusicEl = new Audio(file);
     fileMusicEl.loop = true;
+    fileMusicEl.muted = !soundOn;
     fileMusicEl.volume = soundOn ? 0.4 : 0;
     const playPromise = fileMusicEl.play();
     if(playPromise && typeof playPromise.catch === 'function') playPromise.catch(()=>{});
@@ -656,11 +657,21 @@ function startMusic(variant){
 function toggleSound(){
   soundOn = !soundOn;
   ensureAudio();
-  if(masterGain) masterGain.gain.value = soundOn ? 0.16 : 0;
-  if(fileMusicEl) fileMusicEl.volume = soundOn ? 0.4 : 0;
+  // Sound effects
+  if(masterGain){
+    masterGain.gain.value = soundOn ? 0.16 : 0;
+  }
+  // Background music
+  if(fileMusicEl){
+    fileMusicEl.muted = !soundOn;
+    fileMusicEl.volume = soundOn ? 0.4 : 0;
+  }
   ['sound-toggle-title','sound-toggle-game'].forEach(id=>{
     const el = document.getElementById(id);
-    if(el){ el.textContent = 'Sound: '+(soundOn?'On':'Off'); el.classList.toggle('off', !soundOn); }
+    if(el){
+      el.textContent = 'Sound: ' + (soundOn ? 'On' : 'Off');
+      el.classList.toggle('off', !soundOn);
+    }
   });
 }
 
